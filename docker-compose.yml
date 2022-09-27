@@ -1,0 +1,44 @@
+services:
+  mongodb:
+    image: mongo
+    volumes:
+      - mongodata:/data/db
+
+  reactapp:
+    build:
+      context: reactapp
+    ports:
+      - 8080:8080
+    depends_on:
+      - mongodb
+
+  noreactapp:
+    build:
+      context: standardapp
+    ports:
+      - 8081:8080
+    depends_on:
+      - mongodb
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - 3000:3000
+    volumes:
+      - grafana-storage:/var/lib/grafana
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+    depends_on:
+      - prometheus
+
+volumes:
+  mongodata:
+  prometheus-data:
+  grafana-storage:
